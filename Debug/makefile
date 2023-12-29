@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := cube_prog_vt2
+BUILD_ARTIFACT_NAME := cube_prog_vt3
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-cube_prog_vt2.elf \
+cube_prog_vt3.elf \
 
 MAP_FILES += \
-cube_prog_vt2.map \
+cube_prog_vt3.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-cube_prog_vt2.list \
+cube_prog_vt3.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: cube_prog_vt2.elf secondary-outputs
+main-build: cube_prog_vt3.elf secondary-outputs
 
 # Tool invocations
-cube_prog_vt2.elf cube_prog_vt2.map: $(OBJS) $(USER_OBJS) C:\Users\user\STM32CubeIDE\workspace_1.14.1\cube_prog_vt2\STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "cube_prog_vt2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\user\STM32CubeIDE\workspace_1.14.1\cube_prog_vt2\STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cube_prog_vt2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+cube_prog_vt3.elf cube_prog_vt3.map: $(OBJS) $(USER_OBJS) C:\Users\user\STM32CubeIDE\workspace_1.14.1\cube_prog_vt3\STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "cube_prog_vt3.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\user\STM32CubeIDE\workspace_1.14.1\cube_prog_vt3\STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cube_prog_vt3.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-cube_prog_vt2.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "cube_prog_vt2.list"
+cube_prog_vt3.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "cube_prog_vt3.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) cube_prog_vt2.elf cube_prog_vt2.list cube_prog_vt2.map default.size.stdout
+	-$(RM) cube_prog_vt3.elf cube_prog_vt3.list cube_prog_vt3.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

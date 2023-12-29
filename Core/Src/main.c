@@ -45,6 +45,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2S_HandleTypeDef hi2s3;
+DMA_HandleTypeDef hdma_spi3_rx;
+
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
@@ -54,14 +57,19 @@ SPI_HandleTypeDef hspi1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_I2S3_Init(void);
 /* USER CODE BEGIN PFP */
 void checkborder(void);
+void initscreen(void);
+void initpcm(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint16_t inp[4*CNT_DISCRET];
+uint16_t out[4*CNT_DISCRET];
 /* USER CODE END 0 */
 
 /**
@@ -87,16 +95,19 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
+  MX_I2S3_Init();
   /* USER CODE BEGIN 2 */
-  ST7735_Init();
-  ST7735_FillScreen(ST7735_BLACK);
-  checkborder();
+  initscreen();
+  initpcm();
+
+  HAL_I2S_Receive_DMA(&hi2s3, inp, CNT_DISCRET*2);	// Отправляет в дма (Принять из Устройства)
+  // HAL_I2S_Transmit_DMA(&hi2s3, out, CNT_DISCRET*2); // Забирает (ОтравитьВДМА)
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,7 +117,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  testAll();
   }
   /* USER CODE END 3 */
 }
@@ -157,6 +167,40 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief I2S3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S3_Init(void)
+{
+
+  /* USER CODE BEGIN I2S3_Init 0 */
+
+  /* USER CODE END I2S3_Init 0 */
+
+  /* USER CODE BEGIN I2S3_Init 1 */
+
+  /* USER CODE END I2S3_Init 1 */
+  hi2s3.Instance = SPI3;
+  hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
+  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_24B;
+  hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
+  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_48K;
+  hi2s3.Init.CPOL = I2S_CPOL_HIGH;
+  hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S3_Init 2 */
+
+  /* USER CODE END I2S3_Init 2 */
+
+}
+
+/**
   * @brief SPI1 Initialization Function
   * @param None
   * @retval None
@@ -195,6 +239,22 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -208,6 +268,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_6, GPIO_PIN_RESET);
@@ -225,7 +286,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void checkborder(void){
-	HAL_Delay(3000);
+	HAL_Delay(1000);
 	for (int x = 0; x < ST7735_WIDTH; x++) {
 		ST7735_DrawPixel(x, 0, ST7735_RED);
 		ST7735_DrawPixel(x, ST7735_HEIGHT - 1, ST7735_RED);
@@ -235,11 +296,50 @@ void checkborder(void){
 		ST7735_DrawPixel(0, y, ST7735_RED);
 		ST7735_DrawPixel(ST7735_WIDTH - 1, y, ST7735_RED);
 	}
-	HAL_Delay(3000);
+	HAL_Delay(1000);
 	ST7735_FillScreen(ST7735_BLACK);
 }
 
+void initscreen(void){
+	  ST7735_Init();
+	  ST7735_FillScreen(ST7735_BLACK);
+	  checkborder();
+	  ST7735_FillScreenFast(ST7735_BLACK);
+// hello
+/*
+  	  testAll();
 
+	  ST7735_SetRotation(0);
+	  ST7735_WriteString(0, 0, "HELLO", Font_11x18, ST7735_RED,ST7735_BLACK);
+	  HAL_Delay(1000);
+	  fillScreen(ST7735_BLACK);
+
+	  ST7735_SetRotation(1);
+	  ST7735_WriteString(0, 0, "WORLD", Font_11x18, ST7735_GREEN,ST7735_BLACK);
+	  HAL_Delay(1000);
+	  fillScreen(ST7735_BLACK);
+
+	  ST7735_SetRotation(2);
+	  ST7735_WriteString(0, 0, "FROM", Font_11x18, ST7735_BLUE,ST7735_BLACK);
+	  HAL_Delay(1000);
+	  fillScreen(ST7735_BLACK);
+
+	  ST7735_SetRotation(3);
+	  ST7735_WriteString(0, 0, "STM32", Font_16x26, ST7735_YELLOW,ST7735_BLACK);
+	  HAL_Delay(1000);
+	  fillScreen(ST7735_BLACK);
+*/
+// end hello
+
+}
+
+void initpcm(){
+	  ST7735_SetRotation(0);
+	  fillScreen(ST7735_BLACK);
+	  ST7735_WriteString(0, 0, "pcm init...", Font_7x10, ST7735_WHITE,ST7735_BLACK);
+	  HAL_Delay(1000);
+	  ST7735_WriteString(LABEL_POSITION, 0, "ok", Font_7x10, ST7735_WHITE,ST7735_GREEN);
+}
 /* USER CODE END 4 */
 
 /**

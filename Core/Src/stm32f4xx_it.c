@@ -42,6 +42,11 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+extern uint16_t inp[4*CNT_DISCRET];
+extern uint16_t out[4*CNT_DISCRET];
+float float_left, float_right;
+uint32_t int_left, int_right;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,7 +60,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern DMA_HandleTypeDef hdma_spi3_rx;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -198,6 +203,47 @@ void SysTick_Handler(void)
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
 
-/* USER CODE BEGIN 1 */
+/**
+  * @brief This function handles DMA1 stream0 global interrupt.
+  */
+void DMA1_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
 
+  /* USER CODE END DMA1_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi3_rx);
+  /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
+  /* USER CODE END DMA1_Stream0_IRQn 1 */
+}
+
+/* USER CODE BEGIN 1 */
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
+	// Береме только значения ЛК
+	int_left = ((int32_t)(((uint32_t)inp[0] << 8) |inp[1] << 8));
+	if(int_left & (1<<23)) int_left|=0xFF000000;
+	float_left = (int32_t) int_left;
+
+	// Операции над буфером приема
+	// float_left /= 6;
+
+	// Заполняем выходной массив
+	int_left = (int32_t) float_left;
+	out[0] = (uint32_t) int_left >> 8;
+	out[1] = (uint32_t) int_left << 8;
+}
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
+	// Береме только значения ПК
+	int_right = ((int32_t)(((uint32_t)inp[2] << 8) |inp[3] << 8));
+	if(int_right & (1<<23)) int_right|=0xFF000000;
+	float_right = (int32_t) int_right;
+
+	// Операции над буфером приема
+	// float_left /= 6;
+
+	// Заполняем выходной массив
+	int_right = (int32_t) float_right;
+	out[2] = (uint32_t) int_right >> 8;
+	out[3] = (uint32_t) int_right << 8;
+}
 /* USER CODE END 1 */

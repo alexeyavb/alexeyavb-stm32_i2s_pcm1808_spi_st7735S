@@ -8,6 +8,7 @@
 #ifndef INC_GFX_FUNCTIONS_H_
 #define INC_GFX_FUNCTIONS_H_
 
+#define LABEL_POSITION 110
 void drawPixel(int16_t x, int16_t y, uint16_t color);
 void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
 void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
