@@ -46,7 +46,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2S_HandleTypeDef hi2s3;
+I2S_HandleTypeDef hi2s4;
 DMA_HandleTypeDef hdma_spi3_rx;
+DMA_HandleTypeDef hdma_spi4_tx;
 
 SPI_HandleTypeDef hspi1;
 
@@ -56,20 +58,24 @@ SPI_HandleTypeDef hspi1;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2S3_Init(void);
+static void MX_I2S4_Init(void);
 /* USER CODE BEGIN PFP */
 void checkborder(void);
 void initscreen(void);
 void initpcm(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint16_t inp[4*CNT_DISCRET];
 uint16_t out[4*CNT_DISCRET];
+uint16_t curPos, lPos;
 /* USER CODE END 0 */
 
 /**
@@ -94,6 +100,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+/* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
@@ -102,12 +111,13 @@ int main(void)
   MX_DMA_Init();
   MX_SPI1_Init();
   MX_I2S3_Init();
+  MX_I2S4_Init();
   /* USER CODE BEGIN 2 */
   initscreen();
   initpcm();
 
   HAL_I2S_Receive_DMA(&hi2s3, inp, CNT_DISCRET*2);	// Отправляет в дма (Принять из Устройства)
-  // HAL_I2S_Transmit_DMA(&hi2s3, out, CNT_DISCRET*2); // Забирает (ОтравитьВДМА)
+  HAL_I2S_Transmit_DMA(&hi2s4, out, CNT_DISCRET*2); // Забирает (ОтравитьВДМА)
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,6 +177,26 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 236;
+  PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
+  PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
   * @brief I2S3 Initialization Function
   * @param None
   * @retval None
@@ -197,6 +227,40 @@ static void MX_I2S3_Init(void)
   /* USER CODE BEGIN I2S3_Init 2 */
 
   /* USER CODE END I2S3_Init 2 */
+
+}
+
+/**
+  * @brief I2S4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S4_Init(void)
+{
+
+  /* USER CODE BEGIN I2S4_Init 0 */
+
+  /* USER CODE END I2S4_Init 0 */
+
+  /* USER CODE BEGIN I2S4_Init 1 */
+
+  /* USER CODE END I2S4_Init 1 */
+  hi2s4.Instance = SPI4;
+  hi2s4.Init.Mode = I2S_MODE_MASTER_TX;
+  hi2s4.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s4.Init.DataFormat = I2S_DATAFORMAT_24B;
+  hi2s4.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s4.Init.AudioFreq = I2S_AUDIOFREQ_48K;
+  hi2s4.Init.CPOL = I2S_CPOL_LOW;
+  hi2s4.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s4.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S4_Init 2 */
+
+  /* USER CODE END I2S4_Init 2 */
 
 }
 
@@ -246,11 +310,15 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
 }
 
@@ -339,6 +407,15 @@ void initpcm(){
 	  ST7735_WriteString(0, 0, "pcm init...", Font_7x10, ST7735_WHITE,ST7735_BLACK);
 	  HAL_Delay(1000);
 	  ST7735_WriteString(LABEL_POSITION, 0, "ok", Font_7x10, ST7735_WHITE,ST7735_GREEN);
+}
+void blow_stream(){
+	lPos+=1;
+	curPos = lPos*10;
+	if(curPos >= ST7735_HEIGHT){
+		curPos = 0; lPos = 0;
+		fillScreen(ST7735_BLACK);
+	}
+	ST7735_WriteString(0,curPos*=10, "call", Font_7x10, ST7735_WHITE,ST7735_BLACK);
 }
 /* USER CODE END 4 */
 

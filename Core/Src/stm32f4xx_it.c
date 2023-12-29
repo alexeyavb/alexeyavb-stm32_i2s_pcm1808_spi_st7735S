@@ -44,6 +44,7 @@
 
 extern uint16_t inp[4*CNT_DISCRET];
 extern uint16_t out[4*CNT_DISCRET];
+extern void blow_stream(void);
 float float_left, float_right;
 uint32_t int_left, int_right;
 
@@ -61,6 +62,7 @@ uint32_t int_left, int_right;
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_spi3_rx;
+extern DMA_HandleTypeDef hdma_spi4_tx;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -216,6 +218,20 @@ void DMA1_Stream0_IRQHandler(void)
   /* USER CODE END DMA1_Stream0_IRQn 1 */
 }
 
+/**
+  * @brief This function handles DMA2 stream1 global interrupt.
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi4_tx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
+}
+
 /* USER CODE BEGIN 1 */
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 	// Береме только значения ЛК
@@ -225,7 +241,7 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 
 	// Операции над буфером приема
 	// float_left /= 6;
-
+	blow_stream();
 	// Заполняем выходной массив
 	int_left = (int32_t) float_left;
 	out[0] = (uint32_t) int_left >> 8;

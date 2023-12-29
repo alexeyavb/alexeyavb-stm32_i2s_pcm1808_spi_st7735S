@@ -49,11 +49,14 @@ PCM1808
 11. G		Земля
 12. G		Земля
 3V3		Не распаянный в гребенку 3.3 (возможно из стабилизатора 5V->3.3V)
+Токовое потребление высокое.
 
 Подключение АЦП
 =. STM		NAME		PCM	NAME
 1. PB10 (B10) I2S3_MCK        	2	MCLK
-2. PA15 (A15) I2S3_WS		3	LR   ?
-3. PB3	(B3)  I2S3_CK		4	BCLK ?
+2. PA15 (A15) I2S3_WS		3	LR
+3. PB3	(B3)  I2S3_CK		4	BCLK 
 4. PB5 	(B5)  I2S3_SD		5	SD
 
+STM-I2S Master out
+PA1 (A1)
