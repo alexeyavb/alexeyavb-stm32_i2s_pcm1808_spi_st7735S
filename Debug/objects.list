@@ -1,3 +1,4 @@
+"./Core/Src/ax_utils_led.o"
 "./Core/Src/fonts.o"
 "./Core/Src/gfx_functions.o"
 "./Core/Src/main.o"

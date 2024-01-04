@@ -68,7 +68,7 @@ static void MX_I2S4_Init(void);
 void checkborder(void);
 void initscreen(void);
 void initpcm(void);
-
+extern void testDrawPixelMeter(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,10 +114,10 @@ int main(void)
   MX_I2S4_Init();
   /* USER CODE BEGIN 2 */
   initscreen();
-  initpcm();
-
+  ST7735_FillScreenFast(ST7735_BLACK);
   HAL_I2S_Receive_DMA(&hi2s3, inp, CNT_DISCRET*2);	// Отправляет в дма (Принять из Устройства)
   HAL_I2S_Transmit_DMA(&hi2s4, out, CNT_DISCRET*2); // Забирает (ОтравитьВДМА)
+  testDrawPixelMeter();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,6 +126,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
+// 	  ST7735_FillScreenFast(ST7735_BLACK);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -411,11 +412,13 @@ void initpcm(){
 void blow_stream(){
 	lPos+=1;
 	curPos = lPos*10;
+/*
 	if(curPos >= ST7735_HEIGHT){
 		curPos = 0; lPos = 0;
 		fillScreen(ST7735_BLACK);
 	}
 	ST7735_WriteString(0,curPos*=10, "call", Font_7x10, ST7735_WHITE,ST7735_BLACK);
+*/
 }
 /* USER CODE END 4 */
 

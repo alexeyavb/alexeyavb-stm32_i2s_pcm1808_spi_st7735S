@@ -233,8 +233,11 @@
 #define ST7735_CYAN    0x07FF
 #define ST7735_MAGENTA 0xF81F
 #define ST7735_YELLOW  0xFFE0
+#define ST7735_ORANGE  0x7E00
+#define ST7735_BROWN   0x79E0
 #define ST7735_WHITE   0xFFFF
-#define color565(r,g,b) ST7735_COLOR565(r, g, b)
+
+#define color565(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 #define ST7735_COLOR565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 
 
@@ -263,7 +266,7 @@ void ST7735_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint
 void ST7735_InvertColors(bool invert);
 void ST7735_SetGamma(GammaDef gamma);
 void ST7735_SetRotation(uint8_t m);
-
+void ST7735_SaveScreen(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t* data);
 #ifdef __cplusplus
 }
 #endif

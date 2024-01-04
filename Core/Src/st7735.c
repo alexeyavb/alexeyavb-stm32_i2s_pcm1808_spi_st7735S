@@ -120,6 +120,11 @@ static void ST7735_WriteData(uint8_t* buff, size_t buff_size) {
     HAL_SPI_Transmit(&ST7735_SPI_PORT, buff, buff_size, HAL_MAX_DELAY);
 }
 
+static void ST7735_ReadData(uint8_t* buff, size_t buff_size) {
+    HAL_GPIO_WritePin(ST7735_DC_GPIO_Port, ST7735_DC_Pin, GPIO_PIN_SET);
+    HAL_SPI_Receive(&ST7735_SPI_PORT, buff, buff_size, HAL_MAX_DELAY);
+}
+
 static void ST7735_ExecuteCommandList(const uint8_t *addr) {
     uint8_t numCommands, numArgs;
     uint16_t ms;
@@ -160,6 +165,22 @@ static void ST7735_SetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t 
 
     // write to RAM
     ST7735_WriteCommand(ST7735_RAMWR);
+}
+
+static void ST7735_GetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
+    // column address set
+    ST7735_WriteCommand(ST7735_CASET);
+    uint8_t data[] = { 0x00, x0 + ST7735_XSTART, 0x00, x1 + ST7735_XSTART };
+    ST7735_WriteData(data, sizeof(data));
+
+    // row address set
+    ST7735_WriteCommand(ST7735_RASET);
+    data[1] = y0 + ST7735_YSTART;
+    data[3] = y1 + ST7735_YSTART;
+    ST7735_WriteData(data, sizeof(data));
+
+    // write to RAM
+    ST7735_WriteCommand(ST7735_RAMRD);
 }
 
 void ST7735_Init() {
@@ -322,6 +343,15 @@ void ST7735_SetGamma(GammaDef gamma)
 	ST7735_WriteCommand(ST7735_GAMSET);
 	ST7735_WriteData((uint8_t *) &gamma, sizeof(gamma));
 	ST7735_Unselect();
+}
+
+void ST7735_SaveScreen(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t* data) {
+    // uint8_t data[] = { 0x00, x0 + ST7735_XSTART, 0x00, x1 + ST7735_XSTART };
+
+	ST7735_Select();
+    ST7735_GetAddressWindow(x0, y0, x1, y1);
+    ST7735_ReadData(data, sizeof(data));
+    ST7735_Unselect();
 }
 
 void ST7735_SetRotation(uint8_t m)
